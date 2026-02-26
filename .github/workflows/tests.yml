@@ -17,7 +17,18 @@ jobs:
         run: |
           docker compose up -d --build
           docker ps -a
-          sleep 20
+
+          # wait until postgres is ready
+          for i in {1..60}; do
+            if docker compose exec -T pg pg_isready -U postgres >/dev/null 2>&1; then
+              echo "Postgres is ready"
+              break
+            fi
+            echo "Waiting for Postgres... ($i/60)"
+            sleep 2
+          done
+
+          docker compose logs --tail=200 pg
 
       - name: Run tests
         run: |
