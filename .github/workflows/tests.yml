@@ -16,21 +16,26 @@ jobs:
       - name: Start containers
         run: |
           docker compose up -d --build
-          docker ps -a
+          docker compose ps
 
-          # wait until postgres is ready
-          for i in {1..60}; do
-            if docker compose exec -T pg pg_isready -U postgres >/dev/null 2>&1; then
-              echo "Postgres is ready"
-              break
+      - name: Wait for DB + schema
+        run: |
+          # wait until we can list tables (schema loaded)
+          for i in {1..90}; do
+            if docker compose exec -T pg psql -U postgres -d postgres -c "select 1" >/dev/null 2>&1; then
+              # if pagila DB exists, this will succeed; otherwise it will fail and keep waiting
+              if docker compose exec -T pg psql -U postgres -d pagila -c "select 1" >/dev/null 2>&1; then
+                echo "pagila is ready"
+                break
+              fi
             fi
-            echo "Waiting for Postgres... ($i/60)"
+            echo "waiting... ($i/90)"
             sleep 2
           done
+          docker compose exec -T pg psql -U postgres -c "\l" || true
+          docker compose exec -T pg psql -U postgres -d pagila -c "\dt" || true
 
-          docker compose logs --tail=200 pg
-
-      - name: Run tests
+      - name: Run tests (inside container)
         run: |
-          chmod +x ./run_tests.sh
-          ./run_tests.sh
+          docker compose exec -T pg chmod +x ./run_tests.sh
+          docker compose exec -T pg ./run_tests.sh
