@@ -1,7 +1,7 @@
 # pagila-hw
 [![](https://github.com/daisydu1012/pagila-hw/actions/workflows/tests.yml/badge.svg)](https://github.com/daisydu1012/pagila-hw/actions?query=workflow%3Atests)
 
-## Background
+## Background 
 
 [Pagila](https://github.com/devrimgunduz/pagila) is a standard example database for postgresql.
 The database implements a simple movie rental system like the company Blockbuster might have maintained (before Netflix killed them).
